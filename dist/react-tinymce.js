@@ -56,7 +56,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 	
-	module.exports = __webpack_require__(1);
+	window.TinyMCE = __webpack_require__(1);
 
 /***/ },
 /* 1 */
@@ -133,10 +133,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 	
 	  render: function render() {
-	    return _react2['default'].createElement('textarea', {
-	      id: this.id,
-	      defaultValue: this.props.content
-	    });
+	    if (this.props.config.inline) {
+	      return _react2['default'].createElement('div', {
+	        id: this.id,
+	        dangerouslySetInnerHTML: { __html: this.props.content }
+	      });
+	    } else {
+	      return _react2['default'].createElement('textarea', {
+	        id: this.id,
+	        defaultValue: this.props.content
+	      });
+	    }
 	  },
 	
 	  _init: function _init(config, content) {
