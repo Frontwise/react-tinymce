@@ -106,7 +106,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  getDefaultProps: function getDefaultProps() {
 	    return {
 	      config: {},
-	      content: ''
+	      content: '',
+	      wrappingElement: 'div'
 	    };
 	  },
 	
@@ -119,14 +120,33 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 	
 	  componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
+	    var _this = this;
+	
 	    if (!(0, _lodashLangIsEqual2['default'])(this.props.config, nextProps.config)) {
-	      this._init(nextProps.config, nextProps.content);
+	      if (this._isInit) {
+	        this._remove();
+	        // Wait a bit, because tinyMCE cannot de-initialize instantly
+	        setTimeout(function () {
+	          _this._init(nextProps.config, nextProps.content);
+	        });
+	      } else {
+	        this._init(nextProps.config, nextProps.content);
+	      }
 	    }
 	  },
 	
-	  shouldComponentUpdate: function shouldComponentUpdate(nextProps) {
-	    return !(0, _lodashLangIsEqual2['default'])(this.props.content, nextProps.content) || !(0, _lodashLangIsEqual2['default'])(this.props.config, nextProps.config);
-	  },
+	  // shouldComponentUpdate(nextProps) {
+	  //   console.log('shouldComponentUpdate',
+	  //     isEqual(this.props.content, nextProps.content),
+	  //     isEqual(this.props.config, nextProps.config),
+	  //     this.props.config,
+	  //     nextProps.config
+	  //   );
+	  //   return (
+	  //     !isEqual(this.props.content, nextProps.content) ||
+	  //     !isEqual(this.props.config, nextProps.config)
+	  //   );
+	  // },
 	
 	  componentWillUnmount: function componentWillUnmount() {
 	    this._remove();
@@ -134,7 +154,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  render: function render() {
 	    if (this.props.config.inline) {
-	      return _react2['default'].createElement('div', {
+	      return _react2['default'].createElement(this.props.wrappingElement, {
 	        id: this.id,
 	        dangerouslySetInnerHTML: { __html: this.props.content }
 	      });
@@ -147,19 +167,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 	
 	  _init: function _init(config, content) {
-	    var _this = this;
-	
-	    if (this._isInit) {
-	      this._remove();
-	    }
+	    var _this2 = this;
 	
 	    // hide the textarea that is me so that no one sees it
-	    (0, _reactDom.findDOMNode)(this).style.hidden = 'hidden';
+	    // findDOMNode(this).style.hidden = 'hidden';
 	
 	    config.selector = '#' + this.id;
 	    config.setup = function (editor) {
 	      EVENTS.forEach(function (event, index) {
-	        var handler = _this.props[HANDLER_NAMES[index]];
+	        var handler = _this2.props[HANDLER_NAMES[index]];
 	        if (typeof handler !== 'function') return;
 	        editor.on(event, function (e) {
 	          // native DOM events don't have access to the editor so we pass it here
@@ -177,13 +193,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    tinymce.init(config);
 	
-	    (0, _reactDom.findDOMNode)(this).style.hidden = '';
+	    // findDOMNode(this).style.hidden = '';
 	
 	    this._isInit = true;
 	  },
 	
 	  _remove: function _remove() {
-	    tinymce.EditorManager.execCommand('mceRemoveEditor', true, this.id);
+	    var editor = tinyMCE.EditorManager.get(this.id);
+	    editor.remove();
+	    editor.fire('blur');
 	    this._isInit = false;
 	  }
 	});
